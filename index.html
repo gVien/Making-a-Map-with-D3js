@@ -106,6 +106,27 @@
         .datum(topojson.mesh(uk, uk.objects.subunits, function(a, b) { return a === b && a.id === "IRL"; }))
         .attr("d", path)
         .attr("class", "subunit-boundary IRL");
+
+    // displaying the places (cities)
+    svg.append("path")
+        .datum(topojson.feature(uk, uk.objects.places))
+        .attr("d", path)
+        .attr("class", "place");
+
+    // add labels
+    svg.selectAll(".place-label")
+        .data(topojson.feature(uk, uk.objects.places).features)
+      .enter().append("text")
+        .attr("class", "place-label")
+        .attr("transform", function(d) { return "translate(" + projection(d.geometry.coordinates) + ")"; })
+        .attr("dy", ".35em")
+        .text(function(d) { return d.properties.name; });
+
+    // reposition labels (last two lines of code can combine with the above code)
+    svg.selectAll(".place-label")
+        .attr("x", function(d) { return d.geometry.coordinates[0] > -1 ? 6 : -6; })
+        .style("text-anchor", function(d) { return d.geometry.coordinates[0] > -1 ? "start" : "end"; });
+
   });
 
 </script>
