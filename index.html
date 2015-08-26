@@ -5,6 +5,31 @@
   <title></title>
   <script src="http://d3js.org/d3.v3.min.js"></script>
   <script src="http://d3js.org/topojson.v1.min.js"></script>
+
+  <style type="text/css">
+    .subunit.SCT {
+      fill: #ddc;
+    }
+
+    .subunit.WLS {
+      fill: #cdd;
+    }
+
+    .subunit.NIR {
+      fill: #cdc;
+    }
+
+    .subunit.ENG {
+      fill: #dcd;
+    }
+
+    .subunit.IRL {
+      display: none;
+    }
+
+
+
+  </style>
 </head>
 <body>
 
@@ -24,10 +49,12 @@
     // console.log(uk);
 
     // drawing UK using svg path attribute
-    svg.append("path")
-        .datum(topojson.feature(uk, uk.objects.subunits))
-        .attr("d", d3.geo.path().projection(d3.geo.mercator()));
+    // small map of UK
+    // svg.append("path")
+    //     .datum(topojson.feature(uk, uk.objects.subunits))
+    //     .attr("d", d3.geo.path().projection(d3.geo.mercator()));
 
+    // Enlarging the map
     // Converting TopoJSON to GeoJSON
     var subunits = topojson.feature(uk, uk.objects.subunits);
 
@@ -50,6 +77,12 @@
         .datum(subunits)
         .attr("d", path);
 
+    // Giving each region in UK its own path, so each can be styled later
+    svg.selectAll(".subunit")
+        .data(topojson.feature(uk, uk.objects.subunits).features)
+      .enter().append("path")
+        .attr("class", function(d) { return "subunit " + d.id; })
+        .attr("d", path);
 
   });
 
