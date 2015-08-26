@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script src="http://d3js.org/topojson.v1.min.js"></script>
+
+  <style type="text/css">
+    .subunit.SCT {
+      fill: teal;
+    }
+
+    .subunit.WLS {
+      fill: orange;
+    }
+
+    .subunit.NIR {
+      fill: red;
+    }
+
+    .subunit.ENG {
+      fill: gray;
+    }
+
+    .subunit.IRL {
+      fill: white;
+      /*display: none;*/
+    }
+
+    /* style for bounrary */
+    .subunit-boundary {
+      fill: none;
+      stroke: #777;
+      stroke-dasharray: 2, 2;
+      stroke-linejoin: round;
+    }
+
+    .subunit-boundary.IRL {
+      stroke: red;
+    }
+
+    .place-label {
+      fill: blue;
+      font-size: 15px;
+    }
+
+    .subunit-label {
+      fill: green;
+      fill-opacity: .5;
+      font-size: 25px;
+      font-weight: bold;
+      text-anchor: middle;
+    }
+
+  </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+  // define the size of the svg
+  var width = 960,
+      height = 1160;
+
+  // append svg to body and define its size
+  var svg = d3.select("body").append("svg")
+      .attr("width", width)
+      .attr("height", height);
+
+  d3.json("uk.json", function(error, uk) {
+    if (error) return console.error(error);
+    // console.log(uk);
+
+    // drawing UK using svg path attribute
+    // small map of UK
+    // svg.append("path")
+    //     .datum(topojson.feature(uk, uk.objects.subunits))
+    //     .attr("d", d3.geo.path().projection(d3.geo.mercator()));
+
+    // Enlarging the map
+    // Converting TopoJSON to GeoJSON
+    var subunits = topojson.feature(uk, uk.objects.subunits);
+
+    // add projection
+    // var projection = d3.geo.mercator()
+    //     .scale(500)
+    //     .scale([width / 2, height / 2]);
+    var projection = d3.geo.albers()
+          .center([0, 55.4])
+          .rotate([4.4, 0])
+          .parallels([50, 60])
+          .scale(6000)
+          .translate([width / 2, height / 2]);
+
+    // path generator
+    var path = d3.geo.path()
+        .projection(projection);
+
+    svg.append("path")
+        .datum(subunits)
+        .attr("d", path);
+
+    // Giving each region in UK its own path, so each can be styled later
+    svg.selectAll(".subunit")
+        .data(topojson.feature(uk, uk.objects.subunits).features)
+      .enter().append("path")
+        .attr("class", function(d) { return "subunit " + d.id; })
+        .attr("d", path);
+
+    // displaying the boundaries of each region in UK
+
+    svg.append("path")
+        .datum(topojson.mesh(uk, uk.objects.subunits, function(a,b) { return a !== b && a.id !== "IRL"; }))
+        .attr("d", path)
+        .attr("class", "subunit-boundary");
+
+    svg.append("path")
+        .datum(topojson.mesh(uk, uk.objects.subunits, function(a, b) { return a === b && a.id === "IRL"; }))
+        .attr("d", path)
+        .attr("class", "subunit-boundary IRL");
+
+    // displaying the places (cities)
+    svg.append("path")
+        .datum(topojson.feature(uk, uk.objects.places))
+        .attr("d", path)
+        .attr("class", "place");
+
+    // add labels
+    svg.selectAll(".place-label")
+        .data(topojson.feature(uk, uk.objects.places).features)
+      .enter().append("text")
+        .attr("class", "place-label")
+        .attr("transform", function(d) { return "translate(" + projection(d.geometry.coordinates) + ")"; })
+        .attr("dy", ".35em")
+        .text(function(d) { return d.properties.name; });
+
+    // reposition labels (last two lines of code can combine with the above code)
+    svg.selectAll(".place-label")
+        .attr("x", function(d) { return d.geometry.coordinates[0] > -1 ? 6 : -6; })
+        .style("text-anchor", function(d) { return d.geometry.coordinates[0] > -1 ? "start" : "end"; });
+
+    // add country labels
+    svg.selectAll(".subunit-label")
+        .data(topojson.feature(uk, uk.objects.subunits).features)
+      .enter().append("text")
+        .attr("class", function(d) { return "subunit-label " + d.id; })
+        .attr("transform", function(d) { return "translate(" + path.centroid(d) + ")"; })
+        .attr("dy", ".35em")
+        .text(function(d) { return d.properties.name; });
+  });
+
+</script>
+</body>
+</html>
