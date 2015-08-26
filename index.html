@@ -24,10 +24,21 @@
     }
 
     .subunit.IRL {
-      display: none;
+      fill: white;
+      /*display: none;*/
     }
 
+    /* style for bounrary */
+    .subunit-boundary {
+      fill: none;
+      stroke: #777;
+      stroke-dasharray: 2, 2;
+      stroke-linejoin: round;
+    }
 
+    .subunit-boundary.IRL {
+      stroke: red;
+    }
 
   </style>
 </head>
@@ -84,6 +95,17 @@
         .attr("class", function(d) { return "subunit " + d.id; })
         .attr("d", path);
 
+    // displaying the boundaries of each region in UK
+
+    svg.append("path")
+        .datum(topojson.mesh(uk, uk.objects.subunits, function(a,b) { return a !== b && a.id !== "IRL"; }))
+        .attr("d", path)
+        .attr("class", "subunit-boundary");
+
+    svg.append("path")
+        .datum(topojson.mesh(uk, uk.objects.subunits, function(a, b) { return a === b && a.id === "IRL"; }))
+        .attr("d", path)
+        .attr("class", "subunit-boundary IRL");
   });
 
 </script>
